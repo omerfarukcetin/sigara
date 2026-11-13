@@ -1,12 +1,39 @@
 {
-  "marka": "Örnek Marka",
+  "marka": "Marlboro Red / Touch",
   "paketteki_adet": 20,
   "otomatik": {
-    "urun_adi": "Örnek Marka",
+    "urun_adi": "Marlboro Red / Touch",
+    "arama": "Marlboro",
+    "desen": "marlboro red\\s*/\\s*touch|marlboro red long\\s*/\\s*red\\s*/\\s*touch|marlboro \\(red\\s*/\\s*touch\\)",
     "min_kaynak": 2
   },
   "fiyatlar": [
-    { "tarih": "2026-01-01", "fiyat": 70 },
-    { "tarih": "2026-04-01", "fiyat": 77 }
+    { "tarih": "2020-01-01", "fiyat": 18, "kaynak": "https://www.takvim.com.tr/ekonomi/2021/01/16/sigara-fiyatlari-guncel-zamli-liste-16-ocak-2021-viceroy-pall-mall-medley-winston-monte-carlo-sigara-fiyatlari" },
+    { "tarih": "2021-10-04", "fiyat": 19, "kaynak": "https://indigodergisi.com/2021/10/hangi-sigaranin-fiyati-ne-kadar-oldu/" },
+    { "tarih": "2021-12-08", "fiyat": 21, "kaynak": "https://www.takvim.com.tr/guncel/2021/12/09/10-aralik-sigara-fiyatlari-ne-kadar-sigaraya-zam-geldi-mi-malbora-parliament-muratti-camel-guncel-fiyat-listesi" },
+    { "tarih": "2022-01-04", "fiyat": 25, "kaynak": "https://www.ahaber.com.tr/galeri/ekonomi/philip-morris-son-dakika-sigara-zammi-aciklamasi-4-ocak-marlboro-parliament-muratti-lark-sigara-fiyatlari-ne-kadar-oldu" },
+    { "tarih": "2022-03-13", "fiyat": 27, "kaynak": "https://www.timeturk.com/genel/guncel-sigara-fiyat-listesi-2022-sigaraya-zam-mi-geldi-sigara-ne-kadar-oldu-marlboro-parliament-muratti-lark-l-m-fiyatlari-2022/haber-1727048" },
+    { "tarih": "2022-05-05", "fiyat": 29, "kaynak": "https://www.posta.com.tr/ekonomi/sigara-fiyatlarina-zam-geldi-en-ucuz-ve-en-pahali-sigaralar-2517601" },
+    { "tarih": "2022-07-04", "fiyat": 31, "kaynak": "https://www.ahaber.com.tr/galeri/ekonomi/philip-morris-sigara-zammi-son-dakika-marlboro-parliament-muratti-lark-chesterfield-lm-zamli-sigara-fiyatlari-ne-kadar" },
+    { "tarih": "2022-07-27", "fiyat": 34, "kaynak": "https://www.fanatik.com.tr/sigaraya-zam-mi-geldi-sigara-fiyatlari-ne-kadar-kac-tl-oldu-2022-guncel-zamli-sigara-fiyatlari-2293670" },
+    { "tarih": "2023-01-05", "fiyat": 37, "kaynak": "https://www.timeturk.com/genel/2023-ocak-guncel-sigara-fiyat-listesi-hangi-sigaralara-zam-geldi/haber-1758146" },
+    { "tarih": "2023-01-15", "fiyat": 36, "kaynak": "https://paratic.com/tbyd-baskani-sigara-icin-indirim-kararini-duyurdu/" },
+    { "tarih": "2023-06-05", "fiyat": 41, "kaynak": "https://www.bursahakimiyet.com.tr/ekonomi/philip-morris-sigara-grubuna-beklenen-zam-geldi-1069043" },
+    { "tarih": "2023-07-07", "fiyat": 46, "kaynak": "https://www.milligazete.com.tr/pmi-sigara-fiyatlarina-en-yeni-zam-iste-sigara-fiyat-listesi-2023" },
+    { "tarih": "2023-09-04", "fiyat": 51, "kaynak": "https://www.ensonhaber.com/gundem/sigaraya-5-tl-zam" },
+    { "tarih": "2023-11-07", "fiyat": 56, "kaynak": "https://www.borsatek.com/bir-uretici-grubu-daha-sigaraya-zam-yapti-103854h/" },
+    { "tarih": "2024-01-04", "fiyat": 58, "kaynak": "https://www.kastamonuguncel.com/haber/18667212/philip-morris-grubu-sigara-fiyatlarina-zam-yapti" },
+    { "tarih": "2024-04-05", "fiyat": 64, "kaynak": "https://www.ozgunkocaeli.com.tr/haber/18657698/guncel-sigara-fiyatlari-2024-jti-philip-morris-bat-2024-sigara-fiyatlari" },
+    { "tarih": "2024-05-04", "fiyat": 67, "kaynak": "https://www.antalyagundem.com.tr/httpswwwantalyaningundemicom" },
+    { "tarih": "2024-07-05", "fiyat": 70, "kaynak": "https://www.akhisarhaber.net/philip-morris-sigara-grubuna-4-tl-zam-geldi/5836" },
+    { "tarih": "2024-08-05", "fiyat": 74, "kaynak": "https://www.ekonomim.com/ekonomi/zamli-sigara-fiyatlari-tam-liste-agustos-2024-philip-morris-grubu-ne-kadar-zamlandi-s1-haberi-758896" },
+    { "tarih": "2024-09-05", "fiyat": 77, "kaynak": "https://www.milligazete.com.tr/haber/21526284/sigara-fiyatlarina-bir-zam-daha-geldi-parliament-grubu-fiyatlari-degisti" },
+    { "tarih": "2025-03-10", "fiyat": 85, "kaynak": "https://www.habergazetesi.com.tr/2025-sigara-fiyatlari" },
+    { "tarih": "2025-07-09", "fiyat": 90, "kaynak": "https://paratic.com/philip-morris-sigaralarina-temmuz-zammi-iste-yeni-fiyatlar/" },
+    { "tarih": "2025-08-04", "fiyat": 95, "kaynak": "https://www.yatirimx.com.tr/gundem/philip-morris-grubu-sigaralara-zam-geldi-parliament-marlboro-ve-muratti-yeni-fiyatlariyla-raflarda-4-agustos-2025/12880" },
+    { "tarih": "2025-10-22", "fiyat": 100, "kaynak": "https://www.habergazetesi.com.tr/camel-slender-blue-fiyat-detaylari" },
+    { "tarih": "2026-02-18", "fiyat": 110, "kaynak": "https://www.diken.com.tr/?p=1691873" },
+    { "tarih": "2026-06-06", "fiyat": 115, "kaynak": "https://www.diken.com.tr/?p=1733489" },
+    { "tarih": "2026-08-06", "fiyat": 125, "kaynak": "https://www.evrensel.net/haber/5995274/philip-morris-grubu-sigaralara-zam" }
   ]
 }

@@ -26,9 +26,13 @@ export function htmlMetin(html) {
     .replace(/\s+/g, ' ');
 }
 
-/** Metinde ürün adından sonra (arada rakam olmadan, en fazla 40 karakter) gelen fiyatları döndürür. */
-export function fiyatlariBul(metin, urun) {
-  const re = new RegExp(kacis(kucult(urun)) + '[^0-9]{0,40}?(\\d{2,4}(?:[.,]\\d{1,2})?)\\s*(?:tl|₺|lira)', 'g');
+/**
+ * Metinde ürün adından sonra (arada rakam olmadan, en fazla 40 karakter) gelen fiyatları döndürür.
+ * `desen` verilirse ürün adı yerine bu düzenli ifade (küçük harfli metin üzerinde) kullanılır.
+ */
+export function fiyatlariBul(metin, urun, desen) {
+  const ad = desen ? `(?:${desen})` : kacis(kucult(urun));
+  const re = new RegExp(ad + '[^0-9]{0,40}?(\\d{2,4}(?:[.,]\\d{1,2})?)\\s*(?:tl|₺|lira)', 'g');
   const sonuc = [];
   for (const m of kucult(metin).matchAll(re)) sonuc.push(Number(m[1].replace(',', '.')));
   return sonuc;
@@ -73,7 +77,7 @@ async function main() {
   const urun = ayar.urun_adi || veri.marka;
   const son = [...veri.fiyatlar].sort((a, b) => a.tarih.localeCompare(b.tarih)).at(-1);
 
-  const sorgu = encodeURIComponent(`${urun} sigara fiyatı`);
+  const sorgu = encodeURIComponent(`${ayar.arama || urun} sigara fiyatı`);
   const haberler = rssOku(await getir(`https://www.bing.com/news/search?q=${sorgu}&format=rss&setlang=tr-TR&cc=TR`))
     .filter(h => h.link && !isNaN(h.tarih) && Date.now() - h.tarih < ayar.gun * 86400e3)
     .slice(0, ayar.en_fazla_haber);
@@ -82,7 +86,7 @@ async function main() {
   const bulgular = [];
   for (const h of haberler) {
     try {
-      const fiyatlar = fiyatlariBul(htmlMetin(await getir(h.link)), urun);
+      const fiyatlar = fiyatlariBul(htmlMetin(await getir(h.link)), urun, ayar.desen);
       console.log(`  ${istanbulTarih(h.tarih)} ${fiyatlar.length ? fiyatlar.join(', ') + ' TL' : '-'}  ${h.link}`);
       if (fiyatlar.length) bulgular.push({ ...h, fiyatlar });
     } catch (e) { console.log(`  atlandı: ${e.message}`); }
