@@ -12,8 +12,8 @@ const KOK = new URL('../', import.meta.url);
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
 const degisenler = [];
 
-async function getir(url, tur = 'text') {
-  const r = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(30000) });
+async function getir(url, tur = 'text', ekBaslik = {}) {
+  const r = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'tr-TR,tr;q=0.9,en;q=0.8', ...ekBaslik }, signal: AbortSignal.timeout(30000) });
   if (!r.ok) throw new Error(`${r.status} ${url}`);
   return tur === 'json' ? r.json() : r.text();
 }
@@ -104,6 +104,19 @@ async function stooq(sembol) {
     return Object.keys(sonuc).length > 500 ? sonuc : null;
   } catch (e) { console.log(`stooq ${sembol} atlandı:`, e.message); return null; }
 }
+// Altın: freegoldapi.com açık veri seti (USD/ons, günlük)
+async function freeGold() {
+  try {
+    const csv = await getir('https://freegoldapi.com/data/latest.csv');
+    const sonuc = {};
+    for (const satir of csv.trim().split('\n').slice(1)) {
+      const [t, f] = satir.split(',');
+      if (/^\d{4}-\d{2}-\d{2}$/.test(t) && t >= '2019-12-20' && +f > 0) sonuc[t] = +f;
+    }
+    console.log(`freegoldapi: ${Object.keys(sonuc).length} gün`);
+    return Object.keys(sonuc).length > 500 ? sonuc : null;
+  } catch (e) { console.log('freegoldapi atlandı:', e.message); return null; }
+}
 // Altın: LBMA öğleden sonra fiyatı (USD/ons)
 async function lbmaAltin() {
   try {
@@ -131,12 +144,27 @@ async function binanceBtc() {
 async function isYatirimBist() {
   const tarih = d => d.toISOString().slice(0, 10).replace(/-/g, '') + '000000';
   const url = `https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/ChartData.aspx/IndexHistoricalAll?period=1440&from=20191220000000&to=${tarih(new Date())}&endeks=XU100.I`;
+  const baslik = { Referer: 'https://www.isyatirim.com.tr/tr-tr/analiz/hisse/Sayfalar/default.aspx', 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json, text/javascript, */*; q=0.01' };
   try {
-    const j = await getir(url, 'json');
+    const metin = await getir(url, 'text', baslik);
+    console.log(`İş Yatırım IndexHistoricalAll: ${metin.length} bayt`);
+    const j = JSON.parse(metin);
     const sonuc = {};
     for (const [t, v] of j.data || []) if (v > 0) sonuc[new Date(t + 3 * 3600e3).toISOString().slice(0, 10)] = v;
+    if (Object.keys(sonuc).length > 500) return sonuc;
+  } catch (e) { console.log('İş Yatırım BIST atlandı:', e.message); }
+  try {
+    const g = d => `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+    const metin = await getir(`https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/Data.aspx/HisseTekil?hisse=XU100&startdate=20-12-2019&enddate=${g(new Date())}.json`, 'text', baslik);
+    console.log(`İş Yatırım HisseTekil: ${metin.length} bayt`);
+    const j = JSON.parse(metin), sonuc = {};
+    for (const x of j.value || []) {
+      const [gg, aa, yy] = String(x.HGDG_TARIH).split('-');
+      const v = x.END_DEGER ?? x.HGDG_KAPANIS;
+      if (yy && v > 0) sonuc[`${yy}-${aa}-${gg}`] = v;
+    }
     return Object.keys(sonuc).length > 500 ? sonuc : null;
-  } catch (e) { console.log('İş Yatırım BIST atlandı:', e.message); return null; }
+  } catch (e) { console.log('İş Yatırım HisseTekil atlandı:', e.message); return null; }
 }
 
 function kurluCevir(usdSeri, kurlar) {
@@ -158,7 +186,7 @@ async function yatirimGuncelle() {
   const varliklar = [];
 
   // Gram altın = ons (USD) × USD/TRY ÷ 31,10
-  const ons = (await lbmaAltin()) || (await yahoo('GC=F')) || (await stooq('xauusd'));
+  const ons = (await freeGold()) || (await lbmaAltin()) || (await yahoo('GC=F')) || (await stooq('xauusd'));
   if (ons) varliklar.push({ id: 'altin', ad: 'Gram altın', ikon: '🥇', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(ons, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 2) });
 
   const bist = (await isYatirimBist()) || (await yahoo('XU100.IS')) || (await stooq('^xu100'));
