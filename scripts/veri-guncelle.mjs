@@ -104,6 +104,41 @@ async function stooq(sembol) {
     return Object.keys(sonuc).length > 500 ? sonuc : null;
   } catch (e) { console.log(`stooq ${sembol} atlandı:`, e.message); return null; }
 }
+// Altın: LBMA öğleden sonra fiyatı (USD/ons)
+async function lbmaAltin() {
+  try {
+    const j = await getir('https://prices.lbma.org.uk/json/gold_pm.json', 'json');
+    const sonuc = {};
+    for (const x of j) if (x.d >= '2019-12-20' && x.v?.[0] > 0) sonuc[x.d] = x.v[0];
+    return Object.keys(sonuc).length > 500 ? sonuc : null;
+  } catch (e) { console.log('LBMA altın atlandı:', e.message); return null; }
+}
+// Bitcoin: Binance herkese açık veri ucu (BTCUSDT günlük kapanış), 1000'erli sayfalar
+async function binanceBtc() {
+  const sonuc = {};
+  let bas = Date.UTC(2019, 11, 20);
+  try {
+    while (bas < Date.now()) {
+      const k = await getir(`https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1d&startTime=${bas}&limit=1000`, 'json');
+      if (!k.length) break;
+      for (const m of k) sonuc[new Date(m[0]).toISOString().slice(0, 10)] = +m[4];
+      bas = k.at(-1)[0] + 86400000;
+    }
+    return Object.keys(sonuc).length > 500 ? sonuc : null;
+  } catch (e) { console.log('Binance BTC atlandı:', e.message); return null; }
+}
+// BIST 100: İş Yatırım endeks geçmişi
+async function isYatirimBist() {
+  const tarih = d => d.toISOString().slice(0, 10).replace(/-/g, '') + '000000';
+  const url = `https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/ChartData.aspx/IndexHistoricalAll?period=1440&from=20191220000000&to=${tarih(new Date())}&endeks=XU100.I`;
+  try {
+    const j = await getir(url, 'json');
+    const sonuc = {};
+    for (const [t, v] of j.data || []) if (v > 0) sonuc[new Date(t + 3 * 3600e3).toISOString().slice(0, 10)] = v;
+    return Object.keys(sonuc).length > 500 ? sonuc : null;
+  } catch (e) { console.log('İş Yatırım BIST atlandı:', e.message); return null; }
+}
+
 function kurluCevir(usdSeri, kurlar) {
   const tarihler = Object.keys(kurlar).sort();
   let i = 0, sonKur = kurlar[tarihler[0]];
@@ -123,13 +158,13 @@ async function yatirimGuncelle() {
   const varliklar = [];
 
   // Gram altın = ons (USD) × USD/TRY ÷ 31,10
-  const ons = (await yahoo('GC=F')) || (await stooq('xauusd'));
+  const ons = (await lbmaAltin()) || (await yahoo('GC=F')) || (await stooq('xauusd'));
   if (ons) varliklar.push({ id: 'altin', ad: 'Gram altın', ikon: '🥇', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(ons, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 2) });
 
-  const bist = (await yahoo('XU100.IS')) || (await stooq('^xu100'));
+  const bist = (await isYatirimBist()) || (await yahoo('XU100.IS')) || (await stooq('^xu100'));
   if (bist) varliklar.push({ id: 'bist', ad: 'BIST 100', ikon: '📊', not: 'Endeks; temettü ve masraflar hariç', fiyatlar: yuvarla(bist, 2) });
 
-  const btc = (await yahoo('BTC-USD')) || (await stooq('btcusd'));
+  const btc = (await binanceBtc()) || (await yahoo('BTC-USD')) || (await stooq('btcusd'));
   if (btc) varliklar.push({ id: 'btc', ad: 'Bitcoin', ikon: '₿', fiyatlar: yuvarla(kurluCevir(btc, kur), 0) });
 
   // Euro: ECB referans kuru
