@@ -12,8 +12,8 @@ const KOK = new URL('../', import.meta.url);
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
 const degisenler = [];
 
-async function getir(url, tur = 'text', ekBaslik = {}) {
-  const r = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'tr-TR,tr;q=0.9,en;q=0.8', ...ekBaslik }, signal: AbortSignal.timeout(30000) });
+async function getir(url, tur = 'text', ekBaslik = {}, sure = 30000) {
+  const r = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'tr-TR,tr;q=0.9,en;q=0.8', ...ekBaslik }, signal: AbortSignal.timeout(sure) });
   if (!r.ok) throw new Error(`${r.status} ${url}`);
   return tur === 'json' ? r.json() : r.text();
 }
@@ -81,17 +81,36 @@ async function yiufeGuncelle() {
 /* ---------- Yatırım araçları (TL fiyatları) ---------- */
 const ONS_GRAM = 31.1034768;
 
-// Yahoo Finance günlük kapanışlar -> { 'YYYY-MM-DD': kapanış }
+// Yahoo Finance günlük kapanışlar -> { 'YYYY-MM-DD': kapanış }. Önce çerez + crumb alınır (yoksa 429 dönüyor).
+let yahooOturum;
+async function yahooOturumAc() {
+  if (yahooOturum !== undefined) return yahooOturum;
+  yahooOturum = null;
+  try {
+    const r = await fetch('https://fc.yahoo.com/', { headers: { 'User-Agent': UA }, redirect: 'manual', signal: AbortSignal.timeout(20000) });
+    const cerez = (r.headers.getSetCookie?.() || []).map(c => c.split(';')[0]).join('; ');
+    if (!cerez) { console.log('Yahoo: çerez alınamadı'); return null; }
+    const crumb = await getir('https://query2.finance.yahoo.com/v1/test/getcrumb', 'text', { Cookie: cerez });
+    if (!crumb || crumb.length > 50) { console.log('Yahoo: crumb alınamadı'); return null; }
+    yahooOturum = { cerez, crumb };
+    console.log('Yahoo: oturum açıldı');
+  } catch (e) { console.log('Yahoo oturum hatası:', e.message); }
+  return yahooOturum;
+}
 async function yahoo(sembol) {
+  const oturum = await yahooOturumAc();
   const bas = Math.floor(Date.UTC(2019, 11, 20) / 1000), son = Math.floor(Date.now() / 1000);
-  for (const host of ['query1', 'query2']) {
+  for (let deneme = 0; deneme < 3; deneme++) {
+    const host = deneme % 2 ? 'query1' : 'query2';
     try {
-      const j = await getir(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sembol)}?period1=${bas}&period2=${son}&interval=1d`, 'json');
+      const ek = oturum ? `&crumb=${encodeURIComponent(oturum.crumb)}` : '';
+      const j = await getir(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sembol)}?period1=${bas}&period2=${son}&interval=1d${ek}`, 'json', oturum ? { Cookie: oturum.cerez } : {});
       const r = j.chart.result[0], kapanis = r.indicators.quote[0].close, ofset = r.meta.gmtoffset || 0;
       const sonuc = {};
       r.timestamp.forEach((t, i) => { if (kapanis[i] > 0) sonuc[new Date((t + ofset) * 1000).toISOString().slice(0, 10)] = kapanis[i]; });
+      console.log(`Yahoo ${sembol}: ${Object.keys(sonuc).length} gün`);
       if (Object.keys(sonuc).length > 500) return sonuc;
-    } catch (e) { console.log(`${sembol} (${host}) atlandı:`, e.message); }
+    } catch (e) { console.log(`Yahoo ${sembol} (${host}) atlandı:`, e.message); await new Promise(r => setTimeout(r, 4000)); }
   }
   return null;
 }
@@ -219,7 +238,7 @@ async function gumusOran(altinUsd) {
 // S&P 500 endeksi (USD), FRED - anahtarsız CSV
 async function sp500() {
   try {
-    const csv = await getir('https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500&cosd=2019-12-01');
+    const csv = await getir('https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500&cosd=2019-12-01', 'text', {}, 90000);
     const sonuc = {};
     for (const satir of csv.trim().split('\n').slice(1)) { const [t, v] = satir.split(','); if (+v > 0) sonuc[t] = +v; }
     console.log(`FRED SP500: ${Object.keys(sonuc).length} gün`);
@@ -255,16 +274,18 @@ async function yatirimGuncelle() {
   if (bist) varliklar.push({ id: 'bist', ad: 'BIST 100', ikon: '📊', not: 'Endeks; temettü ve masraflar hariç', fiyatlar: yuvarla(bist, 2) });
 
   // Gümüş: önce Borsa İstanbul'daki gümüş fonu (TL), olmazsa altın/gümüş oranından gram gümüş
-  const fon = await gumusFon();
-  if (fon) varliklar.push({ id: 'gumus', ad: 'Gümüş fonu', ikon: '🥈', not: `${fon.kod} (BIST)`, birim: 'pay', fiyatlar: yuvarla(fon.sonuc, 4) });
+  const gumusUsd = (await yahoo('SI=F')) || (await yahoo('XAGUSD=X'));
+  if (gumusUsd) varliklar.push({ id: 'gumus', ad: 'Gram gümüş', ikon: '🥈', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(gumusUsd, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 3) });
   else {
-    const gumusUsd = await gumusOran(ons);
-    if (gumusUsd) varliklar.push({ id: 'gumus', ad: 'Gram gümüş', ikon: '🥈', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(gumusUsd, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 3) });
+    const fon = await gumusFon();
+    if (fon) varliklar.push({ id: 'gumus', ad: 'Gümüş fonu', ikon: '🥈', not: `${fon.kod} (BIST)`, fiyatlar: yuvarla(fon.sonuc, 4) });
   }
 
   // ABD ETF: S&P 500 (SPY/VOO'nun izlediği endeks), USD → TL
-  const spx = await sp500();
-  if (spx) varliklar.push({ id: 'sp500', ad: 'ABD S&P 500 ETF', ikon: '🇺🇸', not: 'Endeks fiyatı; temettü hariç', birim: 'pay', fiyatlar: yuvarla(kurluCevir(spx, kur), 2) });
+  const spy = await yahoo('SPY');
+  const spx = spy ? null : await sp500();
+  if (spy) varliklar.push({ id: 'sp500', ad: 'ABD S&P 500 ETF', ikon: '🇺🇸', not: 'SPY; temettü hariç', fiyatlar: yuvarla(kurluCevir(spy, kur), 2) });
+  else if (spx) varliklar.push({ id: 'sp500', ad: 'ABD S&P 500 ETF', ikon: '🇺🇸', not: 'S&P 500 endeksi; temettü hariç', fiyatlar: yuvarla(kurluCevir(spx, kur), 2) });
 
   const btc = (await binanceBtc()) || (await yahoo('BTC-USD')) || (await stooq('btcusd'));
   if (btc) varliklar.push({ id: 'btc', ad: 'Bitcoin', ikon: '₿', fiyatlar: yuvarla(kurluCevir(btc, kur), 0) });
