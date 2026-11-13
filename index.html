@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sigarasız Kazanç</title>
+<style>
+  :root { --yesil:#2e7d32; --gri:#666; }
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 20px; color:#222; }
+  h1 { margin-bottom: 4px; }
+  .alt { color: var(--gri); margin-top: 0; }
+  .ayarlar { display:flex; flex-wrap:wrap; gap:12px; background:#f5f5f5; padding:14px; border-radius:10px; }
+  .ayarlar label { display:flex; flex-direction:column; font-size:14px; gap:4px; }
+  input { padding:6px 8px; font-size:15px; }
+  .kartlar { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:20px 0; }
+  .kart { border:1px solid #ddd; border-radius:10px; padding:14px; }
+  .kart .deger { font-size:26px; font-weight:700; color:var(--yesil); }
+  .kart .etiket { font-size:13px; color:var(--gri); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { padding:8px; border-bottom:1px solid #eee; text-align:right; }
+  th:first-child, td:first-child { text-align:left; }
+  .hata { color:#c62828; }
+</style>
+</head>
+<body>
+  <h1>🚭 Sigarasız Kazanç</h1>
+  <p class="alt" id="marka"></p>
+
+  <div class="ayarlar">
+    <label>Bırakma tarihi <input type="date" id="birakma"></label>
+    <label>Günde içilen adet <input type="number" id="adet" min="1" value="20"></label>
+  </div>
+
+  <div class="kartlar">
+    <div class="kart"><div class="deger" id="kazanc">–</div><div class="etiket">Toplam kazanç</div></div>
+    <div class="kart"><div class="deger" id="gun">–</div><div class="etiket">Sigarasız gün</div></div>
+    <div class="kart"><div class="deger" id="icilmeyen">–</div><div class="etiket">İçilmeyen sigara</div></div>
+    <div class="kart"><div class="deger" id="gunluk">–</div><div class="etiket">Bugünkü günlük kazanç</div></div>
+  </div>
+
+  <h3>Zam dönemlerine göre döküm</h3>
+  <table>
+    <thead><tr><th>Dönem</th><th>Paket fiyatı</th><th>Gün</th><th>Kazanç</th></tr></thead>
+    <tbody id="doku"></tbody>
+  </table>
+  <p id="mesaj" class="hata"></p>
+
+<script>
+const GUN_MS = 86400000;
+const tl = n => n.toLocaleString('tr-TR', { style:'currency', currency:'TRY' });
+const trTarih = d => d.toLocaleDateString('tr-TR');
+// Tarihleri saat dilimi kaymasından korumak için UTC gece yarısına sabitle
+const gunBasi = s => { const [y,m,g] = s.split('-').map(Number); return new Date(Date.UTC(y, m-1, g)); };
+const bugun = () => { const n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())); };
+
+/**
+ * Bırakma tarihinden bugüne kadar, her zam dönemini ayrı hesaplar.
+ * fiyatlar: [{tarih:'YYYY-MM-DD', fiyat:Number}] (sıralı olmak zorunda değil)
+ * Bırakma günü dahil, bugün dahil sayılır.
+ */
+function hesapla(fiyatlar, birakmaStr, gundeAdet, paketAdet) {
+  const liste = fiyatlar.map(f => ({ bas: gunBasi(f.tarih), fiyat: f.fiyat }))
+                        .sort((a, b) => a.bas - b.bas);
+  const bas = gunBasi(birakmaStr);
+  const son = bugun();
+  if (bas > son) return { hata: 'Bırakma tarihi ileride olamaz.' };
+  if (bas < liste[0].bas) return { hata: `Fiyat listesi ${trTarih(liste[0].bas)} tarihinden başlıyor; daha eski bir fiyat ekleyin.` };
+
+  const donemler = [];
+  for (let i = 0; i < liste.length; i++) {
+    const donemBas = liste[i].bas;
+    const donemSon = i + 1 < liste.length ? new Date(liste[i+1].bas - GUN_MS) : son; // bir sonraki zamdan önceki gün
+    const a = bas > donemBas ? bas : donemBas;
+    const b = son < donemSon ? son : donemSon;
+    if (a > b) continue; // bu dönem bırakma aralığına girmiyor
+    const gun = Math.round((b - a) / GUN_MS) + 1;
+    const gunluk = liste[i].fiyat / paketAdet * gundeAdet;
+    donemler.push({ a, b, fiyat: liste[i].fiyat, gun, kazanc: gun * gunluk, gunluk });
+  }
+  const toplamGun = donemler.reduce((s, d) => s + d.gun, 0);
+  return {
+    donemler,
+    toplamGun,
+    toplam: donemler.reduce((s, d) => s + d.kazanc, 0),
+    icilmeyen: toplamGun * gundeAdet,
+    bugunGunluk: donemler.length ? donemler[donemler.length - 1].gunluk : 0
+  };
+}
+
+let veri;
+function guncelle() {
+  const birakma = document.getElementById('birakma').value;
+  const adet = Number(document.getElementById('adet').value) || 0;
+  try { localStorage.setItem('sigara_ayar', JSON.stringify({ birakma, adet })); } catch (e) {}
+  if (!veri || !birakma || !adet) return;
+
+  const s = hesapla(veri.fiyatlar, birakma, adet, veri.paketteki_adet || 20);
+  document.getElementById('mesaj').textContent = s.hata || '';
+  if (s.hata) return;
+
+  document.getElementById('kazanc').textContent = tl(s.toplam);
+  document.getElementById('gun').textContent = s.toplamGun.toLocaleString('tr-TR');
+  document.getElementById('icilmeyen').textContent = s.icilmeyen.toLocaleString('tr-TR');
+  document.getElementById('gunluk').textContent = tl(s.bugunGunluk);
+  document.getElementById('doku').innerHTML = s.donemler.map(d =>
+    `<tr><td>${trTarih(d.a)} – ${trTarih(d.b)}</td><td>${tl(d.fiyat)}</td><td>${d.gun}</td><td>${tl(d.kazanc)}</td></tr>`
+  ).join('');
+}
+
+(async () => {
+  let ayar = {};
+  try { ayar = JSON.parse(localStorage.getItem('sigara_ayar')) || {}; } catch (e) {}
+  if (ayar.birakma) document.getElementById('birakma').value = ayar.birakma;
+  if (ayar.adet) document.getElementById('adet').value = ayar.adet;
+
+  try {
+    veri = await (await fetch('fiyatlar.json', { cache: 'no-store' })).json();
+    document.getElementById('marka').textContent =
+      `${veri.marka} · Son fiyat: ${tl(veri.fiyatlar.at(-1).fiyat)}`;
+  } catch (e) {
+    document.getElementById('mesaj').textContent = 'fiyatlar.json okunamadı.';
+  }
+  document.getElementById('birakma').addEventListener('input', guncelle);
+  document.getElementById('adet').addEventListener('input', guncelle);
+  guncelle();
+})();
+</script>
+</body>
+</html>

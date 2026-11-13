@@ -1,0 +1,8 @@
+{
+  "marka": "Örnek Marka",
+  "paketteki_adet": 20,
+  "fiyatlar": [
+    { "tarih": "2026-01-01", "fiyat": 70 },
+    { "tarih": "2026-04-01", "fiyat": 77 }
+  ]
+}
