@@ -1,4 +1,4 @@
-name: Sigara fiyatlarını güncelle
+name: Fiyat, kur ve Yİ-ÜFE güncelle
 
 on:
   schedule:
@@ -16,13 +16,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - id: tara
+      - name: Sigara zamlarını tara
+        continue-on-error: true
         run: node scripts/fiyat-guncelle.mjs
+      - name: Dolar kuru ve Yİ-ÜFE
+        continue-on-error: true
+        run: node scripts/veri-guncelle.mjs
       - name: Değişiklik varsa kaydet
-        if: steps.tara.outputs.mesaj != ''
         run: |
+          if [ -z "$(git status --porcelain fiyatlar.json kur.json yiufe.json)" ]; then echo "Değişiklik yok."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-          git add fiyatlar.json
-          git commit -m "${{ steps.tara.outputs.mesaj }}"
+          git add fiyatlar.json kur.json yiufe.json
+          git commit -m "Otomatik veri güncellemesi: $(date -u +%F)"
           git push
