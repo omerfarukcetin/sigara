@@ -156,7 +156,7 @@ async function isYatirimBist() {
   } catch (e) { console.log('İş Yatırım BIST atlandı:', e.message); }
   try {
     const g = d => `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
-    const metin = await getir(`https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/Data.aspx/HisseTekil?hisse=XU100&startdate=20-12-2019&enddate=${g(new Date())}.json`, 'text', baslik);
+    const metin = await getir(`https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/Data.aspx/HisseTekil?hisse=XU100&startdate=20-12-2019&enddate=${g(new Date())}`, 'text', baslik);
     console.log(`İş Yatırım HisseTekil: ${metin.length} bayt: ${metin.slice(0, 300)}`);
     const j = JSON.parse(metin), sonuc = {};
     for (const x of j.value || []) {
