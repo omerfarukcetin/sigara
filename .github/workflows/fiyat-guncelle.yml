@@ -19,8 +19,10 @@ jobs:
       - name: Sigara zamlarını tara
         continue-on-error: true
         run: node scripts/fiyat-guncelle.mjs
-      - name: Dolar kuru ve Yİ-ÜFE
+      - name: Dolar kuru, Yİ-ÜFE ve yatırım araçları
         continue-on-error: true
+        env:
+          TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}   # gümüş ve ABD ETF için (isteğe bağlı)
         run: node scripts/veri-guncelle.mjs
       - name: Değişiklik varsa kaydet
         run: |

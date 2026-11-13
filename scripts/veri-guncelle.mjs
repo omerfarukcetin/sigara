@@ -99,8 +99,9 @@ async function yahooOturumAc() {
 }
 async function yahoo(sembol) {
   const oturum = await yahooOturumAc();
+  if (!oturum) return null;
   const bas = Math.floor(Date.UTC(2019, 11, 20) / 1000), son = Math.floor(Date.now() / 1000);
-  for (let deneme = 0; deneme < 3; deneme++) {
+  for (let deneme = 0; deneme < 2; deneme++) {
     const host = deneme % 2 ? 'query1' : 'query2';
     try {
       const ek = oturum ? `&crumb=${encodeURIComponent(oturum.crumb)}` : '';
@@ -235,10 +236,23 @@ async function gumusOran(altinUsd) {
     return sonuc;
   } catch (e) { console.log('freegoldapi oran atlandı:', e.message); return null; }
 }
+// Twelve Data: ücretsiz anahtarla günlük geçmiş (repo Secrets → TWELVEDATA_KEY)
+async function twelve(sembol) {
+  const anahtar = process.env.TWELVEDATA_KEY;
+  if (!anahtar) return null;
+  try {
+    const j = await getir(`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(sembol)}&interval=1day&start_date=2019-12-20&outputsize=5000&apikey=${anahtar}`, 'json');
+    if (j.status === 'error') throw new Error(j.message);
+    const sonuc = {};
+    for (const v of j.values || []) if (+v.close > 0) sonuc[v.datetime.slice(0, 10)] = +v.close;
+    console.log(`Twelve Data ${sembol}: ${Object.keys(sonuc).length} gün`);
+    return Object.keys(sonuc).length > 500 ? sonuc : null;
+  } catch (e) { console.log(`Twelve Data ${sembol} atlandı:`, e.message.replace(anahtar, '***')); return null; }
+}
 // S&P 500 endeksi (USD), FRED - anahtarsız CSV
 async function sp500() {
   try {
-    const csv = await getir('https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500&cosd=2019-12-01', 'text', {}, 90000);
+    const csv = await getir('https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500&cosd=2019-12-01', 'text', {}, 20000);
     const sonuc = {};
     for (const satir of csv.trim().split('\n').slice(1)) { const [t, v] = satir.split(','); if (+v > 0) sonuc[t] = +v; }
     console.log(`FRED SP500: ${Object.keys(sonuc).length} gün`);
@@ -274,7 +288,7 @@ async function yatirimGuncelle() {
   if (bist) varliklar.push({ id: 'bist', ad: 'BIST 100', ikon: '📊', not: 'Endeks; temettü ve masraflar hariç', fiyatlar: yuvarla(bist, 2) });
 
   // Gümüş: önce Borsa İstanbul'daki gümüş fonu (TL), olmazsa altın/gümüş oranından gram gümüş
-  const gumusUsd = (await yahoo('SI=F')) || (await yahoo('XAGUSD=X'));
+  const gumusUsd = (await twelve('XAG/USD')) || (await yahoo('SI=F'));
   if (gumusUsd) varliklar.push({ id: 'gumus', ad: 'Gram gümüş', ikon: '🥈', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(gumusUsd, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 3) });
   else {
     const fon = await gumusFon();
@@ -282,7 +296,7 @@ async function yatirimGuncelle() {
   }
 
   // ABD ETF: S&P 500 (SPY/VOO'nun izlediği endeks), USD → TL
-  const spy = await yahoo('SPY');
+  const spy = (await twelve('SPY')) || (await yahoo('SPY'));
   const spx = spy ? null : await sp500();
   if (spy) varliklar.push({ id: 'sp500', ad: 'ABD S&P 500 ETF', ikon: '🇺🇸', not: 'SPY; temettü hariç', fiyatlar: yuvarla(kurluCevir(spy, kur), 2) });
   else if (spx) varliklar.push({ id: 'sp500', ad: 'ABD S&P 500 ETF', ikon: '🇺🇸', not: 'S&P 500 endeksi; temettü hariç', fiyatlar: yuvarla(kurluCevir(spx, kur), 2) });

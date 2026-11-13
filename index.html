@@ -485,7 +485,9 @@ const BIRIM = {
   eur: b => b.toLocaleString('tr-TR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }),
   altin: b => `${b.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} gram`,
   btc: b => `${b.toLocaleString('tr-TR', { maximumFractionDigits: 4 })} BTC`,
-  bist: b => `${b.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} endeks birimi`
+  bist: () => 'Endeksi birebir izleyen fon gibi',
+  gumus: b => `${b.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} gram`,
+  sp500: b => `${b.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} pay`
 };
 
 function yatirimCiz() {

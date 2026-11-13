@@ -29,7 +29,11 @@ Elle çalıştırmak için: Actions → "Sigara fiyatlarını güncelle" → Run
 
 ## Sigara yerine yatırım
 `yatirim.json`: gram altın (ons fiyatı × USD/TRY ÷ 31,10; freegoldapi.com + Binance PAXG), Bitcoin (Binance BTCUSDT × USD/TRY),
-euro (ECB). Dolar için `kur.json` kullanılır. Her gün o günün sigara parasıyla o günün fiyatından alım yapıldığı varsayılır,
+euro (ECB), BIST 100 (İş Yatırım), gram gümüş ve ABD S&P 500 ETF'i (SPY; Twelve Data). Dolar için `kur.json` kullanılır.
+
+**Gümüş ve ABD ETF için anahtar:** Yahoo/Stooq/FRED GitHub sunucularını engellediği için bu ikisi Twelve Data'dan
+çekilir. twelvedata.com'dan ücretsiz anahtar alıp repo **Settings → Secrets and variables → Actions → New repository secret**
+ile `TWELVEDATA_KEY` adıyla ekleyin. Anahtar yoksa bu iki satır sayfada görünmez, diğerleri çalışmaya devam eder. Her gün o günün sigara parasıyla o günün fiyatından alım yapıldığı varsayılır,
 birikim bugünkü fiyatla değerlenir. Vergi, komisyon ve makas hesaba katılmaz.
 
 ## Elle düzeltme
