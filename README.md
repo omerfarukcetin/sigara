@@ -27,6 +27,11 @@ Elle çalıştırmak için: Actions → "Sigara fiyatlarını güncelle" → Run
   bugüne taşınır ("Yİ-ÜFE ile bugünkü değeri"). Sigara fiyatı artışı da aynı dönemin Yİ-ÜFE artışıyla karşılaştırılır.
 - İkisi de aynı GitHub Action ile her gün güncellenir.
 
+## Sigara yerine yatırım
+`yatirim.json`: gram altın (ons fiyatı × USD/TRY ÷ 31,10; freegoldapi.com + Binance PAXG), Bitcoin (Binance BTCUSDT × USD/TRY),
+euro (ECB). Dolar için `kur.json` kullanılır. Her gün o günün sigara parasıyla o günün fiyatından alım yapıldığı varsayılır,
+birikim bugünkü fiyatla değerlenir. Vergi, komisyon ve makas hesaba katılmaz.
+
 ## Elle düzeltme
 Bot yanlış bir şey eklerse ya da bir zammı kaçırırsa `fiyatlar.json`'u elle düzenleyin:
 ```json

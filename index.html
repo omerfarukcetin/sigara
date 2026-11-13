@@ -122,6 +122,27 @@
   .sonuc { background: var(--vurgu-acik); border-radius: 14px; padding: 12px 14px; font-size: 14px; margin-bottom: 14px; }
   .not { font-size: 12px; color: var(--soluk); margin: 10px 0 0; }
 
+
+  /* Yatırım karşılaştırması */
+  .yatirim { display: grid; gap: 10px; }
+  .yat { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: var(--yuzey2); }
+  .yat .ikon { grid-row: span 2; font-size: 22px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: var(--yuzey); }
+  .yat .ad { font-weight: 600; }
+  .yat .ad small { font-weight: 400; color: var(--soluk); font-size: 12px; margin-left: 4px; }
+  .yat .deger { font-weight: 700; font-size: 18px; text-align: right; }
+  .yat .detay { font-size: 13px; color: var(--soluk); }
+  .yat .getiri { font-size: 13px; font-weight: 600; text-align: right; }
+  .yat .getiri.arti { color: var(--vurgu); }
+  .yat .getiri.eksi { color: var(--uyari); }
+  .yat .cubuk { grid-column: 1 / -1; height: 6px; border-radius: 99px; background: var(--cizgi); overflow: hidden; margin-top: 6px; position: relative; }
+  .yat .cubuk i { display: block; height: 100%; background: var(--vurgu); border-radius: 99px; }
+  .yat.taban { background: transparent; border: 1px dashed var(--cizgi); }
+  .yat.taban .cubuk i { background: var(--soluk); }
+  .yat.enf .cubuk i { background: var(--mavi); }
+  .rozet-enf { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 99px; margin-left: 6px; vertical-align: 1px; }
+  .rozet-enf.yendi { background: var(--vurgu-acik); color: var(--vurgu); }
+  .rozet-enf.yenildi { background: color-mix(in srgb, var(--uyari) 15%, transparent); color: var(--uyari); }
+
   /* Dönemler */
   .donemler { display: grid; gap: 10px; }
   .donem { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 12px 14px; border-radius: 14px; background: var(--yuzey2); }
@@ -201,6 +222,13 @@
   </div>
 
   <div id="mesaj" class="hata" role="alert"></div>
+
+  <section class="blok" id="yatirimBlok">
+    <h2>Sigara yerine yatırım yapsaydım</h2>
+    <p class="aciklama">Her gün sigaraya gidecek parayla o günün fiyatından alım yapıldığı varsayılır; bugünkü fiyatla değerlenir.</p>
+    <div class="yatirim" id="yatirim"><div class="detay">Yatırım verisi yükleniyor…</div></div>
+    <p class="not" id="yatirimNot"></p>
+  </section>
 
   <div class="alt-izgara">
     <div class="sol-sutun">
@@ -442,8 +470,62 @@ function yiufeKiyasi(fiyatlar, endeks, birakmaStr) {
   svg.innerHTML = s;
 }
 
+
+/* ---------- Sigara yerine yatırım ---------- */
+// Her gün o günün sigara parası kadar alım: birikim += tl / fiyat(gün); bugünkü değer = birikim × son fiyat
+function yatirimHesapla(donemler, fiyatAl, sonFiyat) {
+  let birikim = 0;
+  for (const d of donemler)
+    for (let t = d.a.getTime(); t <= d.b.getTime(); t += GUN_MS) birikim += d.gunluk / fiyatAl(new Date(t));
+  return { birikim, deger: birikim * sonFiyat };
+}
+const sonDeger = seri => { const t = Object.keys(seri).sort().at(-1); return [t, seri[t]]; };
+const BIRIM = {
+  usd: b => usd(b),
+  eur: b => b.toLocaleString('tr-TR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }),
+  altin: b => `${b.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} gram`,
+  btc: b => `${b.toLocaleString('tr-TR', { maximumFractionDigits: 4 })} BTC`,
+  bist: b => `${b.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} endeks birimi`
+};
+
+function yatirimCiz() {
+  if (!sonuc || sonuc.hata) return;
+  const satirlar = [];
+  const ekle = (id, ad, ikon, seri, not) => {
+    if (!seri || !Object.keys(seri).length) return;
+    const [sonT, sonF] = sonDeger(seri);
+    const r = yatirimHesapla(sonuc.donemler, kurBulucu(seri), sonF);
+    satirlar.push({ id, ad, ikon, not, deger: r.deger, detay: (BIRIM[id] || (b => ''))(r.birikim), sonT });
+  };
+  if (kurlar) ekle('usd', 'Dolar', '💵', kurlar.kurlar);
+  for (const v of yatirim?.varliklar || []) ekle(v.id, v.ad, v.ikon, v.fiyatlar, v.not);
+  if (!satirlar.length) { $('yatirim').innerHTML = '<div class="detay">Yatırım verisi henüz yok.</div>'; return; }
+
+  const enf = sonuc.reel;
+  satirlar.push({ id: 'tl', ad: 'TL olarak kenara koysaydım', ikon: '💰', deger: sonuc.toplam, detay: 'Yastık altı, hiç değerlenmeden', taban: true });
+  if (enf != null) satirlar.push({ id: 'enf', ad: 'Yİ-ÜFE kadar artsaydı', ikon: '📈', deger: enf, detay: 'Enflasyona karşı korunma eşiği', enf: true });
+  satirlar.sort((a, b) => b.deger - a.deger);
+  const enCok = satirlar[0].deger, maliyet = sonuc.toplam;
+
+  $('yatirim').innerHTML = satirlar.map(s => {
+    const getiri = (s.deger / maliyet - 1) * 100;
+    const rozet = s.taban || s.enf || enf == null ? '' :
+      `<span class="rozet-enf ${s.deger >= enf ? 'yendi' : 'yenildi'}">${s.deger >= enf ? 'enflasyonu yendi' : 'enflasyonun altında'}</span>`;
+    return `<div class="yat${s.taban ? ' taban' : ''}${s.enf ? ' enf' : ''}">
+      <div class="ikon">${s.ikon}</div>
+      <div class="ad">${s.ad}${s.not ? `<small>${s.not}</small>` : ''}${rozet}</div>
+      <div class="deger sayi">${tl(s.deger)}</div>
+      <div class="detay sayi">${s.detay}</div>
+      <div class="getiri sayi ${s.taban ? '' : getiri >= 0 ? 'arti' : 'eksi'}">${s.taban ? 'yatırılan' : yuzde(getiri)}</div>
+      <div class="cubuk"><i style="width:${Math.max(1, s.deger / enCok * 100).toFixed(1)}%"></i></div>
+    </div>`;
+  }).join('');
+  const tarihler = satirlar.filter(s => s.sonT).map(s => s.sonT).sort();
+  $('yatirimNot').textContent = `Toplam yatırılan ${tl(maliyet)}. Fiyatlar ${trTarih(gunBasi(tarihler[0]))} – ${trTarih(gunBasi(tarihler.at(-1)))} kapanışı; vergi, komisyon ve alış-satış makası hesaba katılmamıştır. Yatırım tavsiyesi değildir.`;
+}
+
 /* ---------- Ekran ---------- */
-let veri, kurlar, yiufe, sonuc, tumu = false;
+let veri, kurlar, yiufe, yatirim, sonuc, tumu = false;
 
 function donemleriCiz() {
   const liste = [...sonuc.donemler].reverse();
@@ -494,6 +576,7 @@ function guncelle() {
   $('yillik').textContent = tl(sonuc.bugunGunluk * 365);
   donemleriCiz();
   yiufeKiyasi(veri.fiyatlar, yiufe?.endeks, birakma);
+  yatirimCiz();
 }
 
 document.querySelectorAll('[data-adim]').forEach(b => b.addEventListener('click', () => {
@@ -515,7 +598,7 @@ addEventListener('resize', () => { clearTimeout(boyutZaman); boyutZaman = setTim
   $('birakma').max = new Date().toISOString().slice(0, 10);
 
   const getir = ad => fetch(ad, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
-  [veri, kurlar, yiufe] = await Promise.all([getir('fiyatlar.json'), getir('kur.json'), getir('yiufe.json')]);
+  [veri, kurlar, yiufe, yatirim] = await Promise.all([getir('fiyatlar.json'), getir('kur.json'), getir('yiufe.json'), getir('yatirim.json')]);
   if (veri) {
     const sirali = [...veri.fiyatlar].sort((a, b) => a.tarih.localeCompare(b.tarih));
     $('marka').textContent = `${veri.marka} · güncel paket ${sirali.at(-1).fiyat} ₺` +
