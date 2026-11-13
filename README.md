@@ -20,6 +20,13 @@ Ayarlar `fiyatlar.json` → `otomatik` içinde: `urun_adi` haberlerde geçtiği 
 (ör. `Parliament Night Blue`, `Marlboro Touch`, `Winston Slims`).
 Elle çalıştırmak için: Actions → "Sigara fiyatlarını güncelle" → Run workflow.
 
+## Dolar ve Yİ-ÜFE
+- `kur.json`: USD/TRY günlük kurlar (ECB referans kuru, frankfurter.dev). Her günün tasarrufu o günün kuruyla
+  dolara çevrilip toplanır; hafta sonu/tatilde bir önceki iş gününün kuru kullanılır.
+- `yiufe.json`: TÜİK Yİ-ÜFE (2003=100) aylık endeksi. Her günün tasarrufu `son endeks / o ayın endeksi` ile
+  bugüne taşınır ("Yİ-ÜFE ile bugünkü değeri"). Sigara fiyatı artışı da aynı dönemin Yİ-ÜFE artışıyla karşılaştırılır.
+- İkisi de aynı GitHub Action ile her gün güncellenir.
+
 ## Elle düzeltme
 Bot yanlış bir şey eklerse ya da bir zammı kaçırırsa `fiyatlar.json`'u elle düzenleyin:
 ```json
