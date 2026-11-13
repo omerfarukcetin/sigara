@@ -78,7 +78,85 @@ async function yiufeGuncelle() {
   console.log(`Yİ-ÜFE: ${eklenen} yeni ay eklendi.`);
 }
 
+/* ---------- Yatırım araçları (TL fiyatları) ---------- */
+const ONS_GRAM = 31.1034768;
+
+// Yahoo Finance günlük kapanışlar -> { 'YYYY-MM-DD': kapanış }
+async function yahoo(sembol) {
+  const bas = Math.floor(Date.UTC(2019, 11, 20) / 1000), son = Math.floor(Date.now() / 1000);
+  for (const host of ['query1', 'query2']) {
+    try {
+      const j = await getir(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sembol)}?period1=${bas}&period2=${son}&interval=1d`, 'json');
+      const r = j.chart.result[0], kapanis = r.indicators.quote[0].close, ofset = r.meta.gmtoffset || 0;
+      const sonuc = {};
+      r.timestamp.forEach((t, i) => { if (kapanis[i] > 0) sonuc[new Date((t + ofset) * 1000).toISOString().slice(0, 10)] = kapanis[i]; });
+      if (Object.keys(sonuc).length > 500) return sonuc;
+    } catch (e) { console.log(`${sembol} (${host}) atlandı:`, e.message); }
+  }
+  return null;
+}
+// Stooq CSV yedeği (Yahoo erişilemezse)
+async function stooq(sembol) {
+  try {
+    const csv = await getir(`https://stooq.com/q/d/l/?s=${sembol}&d1=20191220&i=d`);
+    const sonuc = {};
+    for (const satir of csv.trim().split('\n').slice(1)) { const p = satir.split(','); if (+p[4] > 0) sonuc[p[0]] = +p[4]; }
+    return Object.keys(sonuc).length > 500 ? sonuc : null;
+  } catch (e) { console.log(`stooq ${sembol} atlandı:`, e.message); return null; }
+}
+function kurluCevir(usdSeri, kurlar) {
+  const tarihler = Object.keys(kurlar).sort();
+  let i = 0, sonKur = kurlar[tarihler[0]];
+  const sonuc = {};
+  for (const t of Object.keys(usdSeri).sort()) {
+    while (i < tarihler.length && tarihler[i] <= t) sonKur = kurlar[tarihler[i++]];
+    sonuc[t] = usdSeri[t] * sonKur;
+  }
+  return sonuc;
+}
+const yuvarla = (seri, basamak) => Object.fromEntries(Object.entries(seri).sort().map(([t, v]) => [t, +v.toFixed(basamak)]));
+
+async function yatirimGuncelle() {
+  const kur = (await oku('kur.json'))?.kurlar;
+  if (!kur) return console.log('kur.json yok, yatırım verisi atlandı.');
+  const eski = await oku('yatirim.json');
+  const varliklar = [];
+
+  // Gram altın = ons (USD) × USD/TRY ÷ 31,10
+  const ons = (await yahoo('GC=F')) || (await stooq('xauusd'));
+  if (ons) varliklar.push({ id: 'altin', ad: 'Gram altın', ikon: '🥇', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(ons, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 2) });
+
+  const bist = (await yahoo('XU100.IS')) || (await stooq('^xu100'));
+  if (bist) varliklar.push({ id: 'bist', ad: 'BIST 100', ikon: '📊', not: 'Endeks; temettü ve masraflar hariç', fiyatlar: yuvarla(bist, 2) });
+
+  const btc = (await yahoo('BTC-USD')) || (await stooq('btcusd'));
+  if (btc) varliklar.push({ id: 'btc', ad: 'Bitcoin', ikon: '₿', fiyatlar: yuvarla(kurluCevir(btc, kur), 0) });
+
+  // Euro: ECB referans kuru
+  for (const kok of ['https://api.frankfurter.dev/v1', 'https://api.frankfurter.app']) {
+    try {
+      const v = await getir(`${kok}/2020-01-01..${new Date().toISOString().slice(0, 10)}?from=EUR&to=TRY`, 'json');
+      varliklar.push({ id: 'eur', ad: 'Euro', ikon: '💶', fiyatlar: yuvarla(Object.fromEntries(Object.entries(v.rates).map(([t, r]) => [t, r.TRY])), 4) });
+      break;
+    } catch (e) { console.log('EUR kaynağı atlandı:', e.message); }
+  }
+
+  // Alınamayan varlık için eski veriyi koru
+  for (const e of eski?.varliklar || []) if (!varliklar.some(v => v.id === e.id)) { varliklar.push(e); console.log(`${e.id}: eski veri korundu`); }
+  if (!varliklar.length) return console.log('Hiçbir yatırım verisi alınamadı.');
+
+  const sira = ['altin', 'bist', 'btc', 'eur'];
+  varliklar.sort((a, b) => sira.indexOf(a.id) - sira.indexOf(b.id));
+  const yeni = { aciklama: 'Günlük TL fiyatları. Dolar karşılığı için kur.json kullanılır.', varliklar };
+  if (JSON.stringify(eski?.varliklar) !== JSON.stringify(varliklar)) {
+    await writeFile(new URL('yatirim.json', KOK), JSON.stringify(yeni) + '\n');
+    degisenler.push('yatırım fiyatları');
+  }
+  for (const v of varliklar) { const t = Object.keys(v.fiyatlar).sort(); console.log(`${v.ad}: ${t.length} gün, ${t[0]} → ${t.at(-1)} = ${v.fiyatlar[t.at(-1)]}`); }
+}
+
 await kurGuncelle();
 await yiufeGuncelle();
+await yatirimGuncelle();
 if (degisenler.length && process.env.GITHUB_OUTPUT)
   await appendFile(process.env.GITHUB_OUTPUT, `mesaj=Veri: ${degisenler.join(', ')}\n`);
