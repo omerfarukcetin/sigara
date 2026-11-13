@@ -1,6 +1,6 @@
 // Nefes service worker: önce ağ, ağ yoksa önbellek. Böylece çevrimiçiyken hep güncel, çevrimdışıyken açılır.
-const ONBELLEK = 'nefes-v1';
-const KABUK = ['./', 'index.html', 'manifest.webmanifest', 'ikon-192.png', 'markalar.json', 'fiyatlar.json', 'kur.json', 'yiufe.json', 'yatirim.json'];
+const ONBELLEK = 'nefes-v2';
+const KABUK = ['./', 'index.html', 'manifest.webmanifest', 'ikon-192.png', 'markalar.json', 'fiyatlar.json', 'fiyatlar/parliament.json', 'kur.json', 'yiufe.json', 'yatirim.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(ONBELLEK).then(c => c.addAll(KABUK)).then(() => self.skipWaiting()));

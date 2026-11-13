@@ -1,6 +1,17 @@
 {
   "aciklama": "Seçilebilir markalar. Her markanın zam geçmişi kendi dosyasında, fiyatlar.json ile aynı biçimde.",
   "markalar": [
-    { "id": "marlboro", "ad": "Marlboro", "grup": "Philip Morris", "dosya": "fiyatlar.json" }
+    {
+      "id": "marlboro",
+      "ad": "Marlboro",
+      "grup": "Philip Morris",
+      "dosya": "fiyatlar.json"
+    },
+    {
+      "id": "parliament",
+      "ad": "Parliament",
+      "grup": "Philip Morris",
+      "dosya": "fiyatlar/parliament.json"
+    }
   ]
 }

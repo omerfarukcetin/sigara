@@ -9,7 +9,7 @@
 
 import { readFile, writeFile, appendFile } from 'node:fs/promises';
 
-const DOSYA = new URL('../fiyatlar.json', import.meta.url);
+const KOK = new URL('../', import.meta.url);
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
 
 // I/İ/ı/i farkını yok say: "NIGHT", "Nıght", "PARLİAMENT" hepsi eşleşsin
@@ -71,7 +71,8 @@ async function getir(url) {
   return r.text();
 }
 
-async function main() {
+async function markaGuncelle(dosya) {
+  const DOSYA = new URL(dosya, KOK);
   const veri = JSON.parse(await readFile(DOSYA, 'utf8'));
   const ayar = { gun: 45, min_kaynak: 2, en_fazla_haber: 15, ...veri.otomatik };
   const urun = ayar.urun_adi || veri.marka;
@@ -99,6 +100,16 @@ async function main() {
   await writeFile(DOSYA, JSON.stringify(veri, null, 2) + '\n');
   console.log(`YENİ ZAM: ${zam.tarih} → ${zam.fiyat} TL (${zam.kaynak})`);
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `mesaj=Zam: ${zam.tarih} ${urun} ${zam.fiyat} TL\n`);
+}
+
+// markalar.json'daki her marka ayrı taranır
+async function main() {
+  let dosyalar = ['fiyatlar.json'];
+  try { dosyalar = JSON.parse(await readFile(new URL('markalar.json', KOK), 'utf8')).markalar.map(m => m.dosya); } catch (e) {}
+  for (const d of dosyalar) {
+    console.log(`\n=== ${d} ===`);
+    try { await markaGuncelle(d); } catch (e) { console.log(`${d} atlandı:`, e.message); }
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) main().catch(e => { console.error(e); process.exit(1); });
