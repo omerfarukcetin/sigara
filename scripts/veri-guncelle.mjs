@@ -168,6 +168,65 @@ async function isYatirimBist() {
   } catch (e) { console.log('İş Yatırım HisseTekil atlandı:', e.message); return null; }
 }
 
+// İş Yatırım "HisseTekil": anahtarsız günlük veri. Yıl yıl istenir (uzun aralıkta boş dönebiliyor).
+// Her satırda hissenin kapanışı (HGDG_KAPANIS) ve o günkü BIST 100 değeri (END_DEGER) bulunur.
+async function isYatirimTekil(kod) {
+  const baslik = { Referer: 'https://www.isyatirim.com.tr/tr-tr/analiz/hisse/Sayfalar/default.aspx', 'X-Requested-With': 'XMLHttpRequest' };
+  const g = d => `${String(d.getUTCDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${d.getUTCFullYear()}`;
+  const satirlar = [];
+  for (let yil = 2019; yil <= new Date().getUTCFullYear(); yil++) {
+    const bas = new Date(Date.UTC(yil, yil === 2019 ? 11 : 0, yil === 2019 ? 20 : 1)), son = new Date(Date.UTC(yil, 11, 31));
+    try {
+      const j = JSON.parse(await getir(`https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/Data.aspx/HisseTekil?hisse=${kod}&startdate=${g(bas)}&enddate=${g(son)}`, 'text', baslik));
+      satirlar.push(...(j.value || []));
+    } catch (e) { console.log(`İş Yatırım ${kod} ${yil} atlandı:`, e.message); }
+  }
+  if (satirlar[0]) console.log(`İş Yatırım ${kod}: ${satirlar.length} satır; alanlar: ${Object.keys(satirlar[0]).join(',')}`);
+  return satirlar;
+}
+const tarihCevir = t => { const [g, a, y] = String(t).split('-'); return y ? `${y}-${a}-${g}` : String(t).slice(0, 10); };
+async function bistTekil() {
+  const sonuc = {};
+  for (const x of await isYatirimTekil('THYAO')) if (x.END_DEGER > 0) sonuc[tarihCevir(x.HGDG_TARIH)] = x.END_DEGER;
+  return Object.keys(sonuc).length > 500 ? sonuc : null;
+}
+async function gumusFon() {
+  for (const kod of ['GMSTR', 'GMSTRF']) {
+    const sonuc = {};
+    for (const x of await isYatirimTekil(kod)) if (x.HGDG_KAPANIS > 0) sonuc[tarihCevir(x.HGDG_TARIH)] = x.HGDG_KAPANIS;
+    if (Object.keys(sonuc).length > 500) return { kod, sonuc };
+  }
+  return null;
+}
+// Gümüş (USD/ons) = altın (USD/ons) ÷ altın/gümüş oranı (freegoldapi)
+async function gumusOran(altinUsd) {
+  try {
+    const csv = await getir('https://freegoldapi.com/data/gold_silver_ratio_enriched.csv');
+    const oran = {};
+    for (const satir of csv.trim().split('\n').slice(1)) {
+      const p = satir.split(','), r = +p[2];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(p[0]) && p[0] >= '2019-12-01' && r > 0) oran[p[0]] = r;
+    }
+    const ot = Object.keys(oran).sort();
+    console.log(`freegoldapi oran: ${ot.length} kayıt, ${ot[0]} → ${ot.at(-1)}`);
+    if (ot.length < 50 || !altinUsd) return null;
+    const sonuc = {};
+    let i = 0, r = oran[ot[0]];
+    for (const t of Object.keys(altinUsd).sort()) { while (i < ot.length && ot[i] <= t) r = oran[ot[i++]]; sonuc[t] = altinUsd[t] / r; }
+    return sonuc;
+  } catch (e) { console.log('freegoldapi oran atlandı:', e.message); return null; }
+}
+// S&P 500 endeksi (USD), FRED - anahtarsız CSV
+async function sp500() {
+  try {
+    const csv = await getir('https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500&cosd=2019-12-01');
+    const sonuc = {};
+    for (const satir of csv.trim().split('\n').slice(1)) { const [t, v] = satir.split(','); if (+v > 0) sonuc[t] = +v; }
+    console.log(`FRED SP500: ${Object.keys(sonuc).length} gün`);
+    return Object.keys(sonuc).length > 500 ? sonuc : null;
+  } catch (e) { console.log('FRED SP500 atlandı:', e.message); return null; }
+}
+
 function kurluCevir(usdSeri, kurlar) {
   const tarihler = Object.keys(kurlar).sort();
   let i = 0, sonKur = kurlar[tarihler[0]];
@@ -192,8 +251,20 @@ async function yatirimGuncelle() {
   if (paxg) { ons = { ...(ons || {}), ...paxg }; console.log(`PAXG: ${Object.keys(paxg).length} gün eklendi`); }
   if (ons) varliklar.push({ id: 'altin', ad: 'Gram altın', ikon: '🥇', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(ons, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 2) });
 
-  const bist = (await isYatirimBist()) || (await yahoo('XU100.IS')) || (await stooq('^xu100'));
+  const bist = (await bistTekil()) || (await isYatirimBist()) || (await yahoo('XU100.IS'));
   if (bist) varliklar.push({ id: 'bist', ad: 'BIST 100', ikon: '📊', not: 'Endeks; temettü ve masraflar hariç', fiyatlar: yuvarla(bist, 2) });
+
+  // Gümüş: önce Borsa İstanbul'daki gümüş fonu (TL), olmazsa altın/gümüş oranından gram gümüş
+  const fon = await gumusFon();
+  if (fon) varliklar.push({ id: 'gumus', ad: 'Gümüş fonu', ikon: '🥈', not: `${fon.kod} (BIST)`, birim: 'pay', fiyatlar: yuvarla(fon.sonuc, 4) });
+  else {
+    const gumusUsd = await gumusOran(ons);
+    if (gumusUsd) varliklar.push({ id: 'gumus', ad: 'Gram gümüş', ikon: '🥈', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(gumusUsd, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 3) });
+  }
+
+  // ABD ETF: S&P 500 (SPY/VOO'nun izlediği endeks), USD → TL
+  const spx = await sp500();
+  if (spx) varliklar.push({ id: 'sp500', ad: 'ABD S&P 500 ETF', ikon: '🇺🇸', not: 'Endeks fiyatı; temettü hariç', birim: 'pay', fiyatlar: yuvarla(kurluCevir(spx, kur), 2) });
 
   const btc = (await binanceBtc()) || (await yahoo('BTC-USD')) || (await stooq('btcusd'));
   if (btc) varliklar.push({ id: 'btc', ad: 'Bitcoin', ikon: '₿', fiyatlar: yuvarla(kurluCevir(btc, kur), 0) });
@@ -211,7 +282,7 @@ async function yatirimGuncelle() {
   for (const e of eski?.varliklar || []) if (!varliklar.some(v => v.id === e.id)) { varliklar.push(e); console.log(`${e.id}: eski veri korundu`); }
   if (!varliklar.length) return console.log('Hiçbir yatırım verisi alınamadı.');
 
-  const sira = ['altin', 'bist', 'btc', 'eur'];
+  const sira = ['altin', 'gumus', 'bist', 'sp500', 'btc', 'eur'];
   varliklar.sort((a, b) => sira.indexOf(a.id) - sira.indexOf(b.id));
   const yeni = { aciklama: 'Günlük TL fiyatları. Dolar karşılığı için kur.json kullanılır.', varliklar };
   if (JSON.stringify(eski?.varliklar) !== JSON.stringify(varliklar)) {
