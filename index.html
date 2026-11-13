@@ -57,14 +57,14 @@
     transition: background-color .25s, color .25s;
   }
   .sayi { font-variant-numeric: tabular-nums; }
-  h2 { font: 700 clamp(22px, 3.4vw, 28px)/1.15 var(--baslik); font-variation-settings: "wdth" 90; letter-spacing: -.015em; margin: 0 0 6px; }
-  .aciklama { color: var(--soluk); margin: 0 0 22px; max-width: 62ch; }
+  h2 { font: 700 clamp(19px, 2.6vw, 22px)/1.2 var(--baslik); font-variation-settings: "wdth" 90; letter-spacing: -.015em; margin: 0 0 6px; }
+  .aciklama { color: var(--soluk); margin: 0 0 14px; max-width: 62ch; font-size: 14px; }
   :focus-visible { outline: 2.5px solid var(--mavi); outline-offset: 2px; border-radius: 6px; }
 
-  .kap { max-width: 1120px; margin: 0 auto; padding: 20px 20px 72px; }
+  .kap { max-width: 1080px; margin: 0 auto; padding: 16px 16px 48px; }
 
   /* ---------- Üst bar ---------- */
-  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 4px 0 28px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 2px 0 18px; }
   .imza { display: flex; align-items: center; gap: 10px; font: 700 20px/1 var(--baslik); letter-spacing: -.01em; }
   .imza svg { width: 26px; height: 26px; flex: none; }
   .tema { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--yuzey2); }
@@ -76,21 +76,22 @@
   .tema button[aria-pressed="true"] { background: var(--yuzey); color: var(--yazi); box-shadow: 0 1px 2px rgba(19,35,58,.12); }
   .tema .yazi { display: none; }
   @media (min-width: 480px) { .tema .yazi { display: inline; } }
+  @media (max-width: 560px) { .yat .durum { display: none; } .yat .ad small { margin-left: 4px; } }
 
   /* ---------- Hero ---------- */
   .hero { padding-bottom: 8px; }
   .hero .ust { color: var(--soluk); font-weight: 500; margin: 0 0 2px; }
   .buyuk {
-    font: 800 clamp(50px, 12.5vw, 128px)/.95 var(--baslik); font-variation-settings: "opsz" 96, "wdth" 92;
+    font: 800 clamp(44px, 10vw, 88px)/.95 var(--baslik); font-variation-settings: "opsz" 96, "wdth" 92;
     letter-spacing: -.025em; margin: 0; color: var(--yazi); white-space: nowrap;
   }
   .buyuk .kurus { color: var(--soluk); font-weight: 600; font-size: .4em; letter-spacing: 0; margin-left: .04em; }
-  .hero .ek { display: flex; flex-wrap: wrap; gap: 4px 22px; margin: 14px 0 0; font-size: 17px; }
+  .hero .ek { display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 10px 0 0; font-size: 15px; }
   .hero .ek b { font-weight: 700; }
   .hero .ek span { color: var(--soluk); }
 
   /* Cümle biçiminde ayarlar */
-  .cumle { margin: 26px 0 0; font: 500 clamp(18px, 2.6vw, 22px)/1.7 var(--metin); max-width: 40ch; }
+  .cumle { margin: 18px 0 0; font: 500 clamp(16px, 2.2vw, 18px)/1.75 var(--metin); max-width: 40ch; }
   .cumle input {
     font: inherit; font-weight: 700; color: var(--yazi); background: var(--yuzey); border: 1.5px solid var(--cizgi);
     border-radius: 10px; padding: 2px 8px; margin: 0 2px; vertical-align: baseline;
@@ -108,11 +109,11 @@
   .cumle small { display: block; font-size: 14px; font-weight: 500; color: var(--soluk); line-height: 1.4; }
 
   /* ---------- Gün alanı (imza öğe) ---------- */
-  .alan-kap { margin: 36px 0 0; position: relative; }
+  .alan-kap { margin: 22px 0 0; position: relative; }
   #gunAlani { display: block; width: 100%; touch-action: pan-y; cursor: crosshair; }
-  .alan-alt { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 20px; margin-top: 12px; font-size: 14px; color: var(--soluk); }
+  .alan-alt { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 20px; margin-top: 8px; font-size: 13px; color: var(--soluk); }
   .lejant-renk { display: flex; align-items: center; gap: 8px; }
-  .lejant-renk i { display: block; width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--hucre-0), var(--hucre-1)); }
+  .lejant-renk i { display: block; width: 90px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--hucre-0), var(--hucre-1)); }
   .ipucu {
     position: absolute; pointer-events: none; z-index: 2; transform: translate(-50%, calc(-100% - 10px));
     background: var(--yazi); color: var(--zemin); font: 600 13px/1.35 var(--metin); padding: 7px 10px; border-radius: 8px; white-space: nowrap;
@@ -122,11 +123,11 @@
   .ipucu span { font-weight: 400; opacity: .8; display: block; }
 
   /* ---------- Rakamlar şeridi ---------- */
-  .serit { display: grid; grid-template-columns: repeat(2, 1fr); margin: 44px 0 0; border-top: 1.5px solid var(--yazi); }
-  .serit > div { padding: 16px 16px 4px 0; }
+  .serit { display: grid; grid-template-columns: repeat(2, 1fr); margin: 22px 0 0; border-top: 1.5px solid var(--yazi); }
+  .serit > div { padding: 12px 12px 2px 0; }
   .serit > div:nth-child(n+3) { border-top: 1px solid var(--cizgi); }
-  .serit b { display: block; font: 700 clamp(24px, 4.2vw, 34px)/1.1 var(--baslik); font-variation-settings: "wdth" 88; letter-spacing: -.02em; }
-  .serit span { display: block; color: var(--soluk); font-size: 14px; line-height: 1.35; margin-top: 4px; }
+  .serit b { display: block; font: 700 clamp(21px, 3.2vw, 26px)/1.1 var(--baslik); font-variation-settings: "wdth" 88; letter-spacing: -.02em; }
+  .serit span { display: block; color: var(--soluk); font-size: 13px; line-height: 1.3; margin-top: 2px; }
   @media (min-width: 760px) {
     .serit { grid-template-columns: repeat(4, 1fr); }
     .serit > div:nth-child(n+3) { border-top: 0; }
@@ -137,34 +138,35 @@
   .hata:empty { display: none; }
 
   /* ---------- Bölümler ---------- */
-  section { margin-top: 72px; }
-  .ikili { display: grid; gap: 72px; }
-  .ikili section { margin-top: 0; }
-  @media (min-width: 900px) { .ikili { grid-template-columns: 1fr 1fr; gap: 56px; } }
-  .ikili-kap { margin-top: 72px; }
-  .not { font-size: 13px; color: var(--soluk); margin: 14px 0 0; max-width: 70ch; }
+  .ikili { display: grid; gap: 14px; margin-top: 14px; }
+  .ikili:first-of-type { margin-top: 28px; }
+  section.panel { background: var(--yuzey); border-radius: 16px; padding: 18px 18px 16px; min-width: 0; }
+  @media (min-width: 900px) { .ikili { grid-template-columns: 1fr 1fr; } }
+  .not { font-size: 12px; color: var(--soluk); margin: 10px 0 0; max-width: 70ch; line-height: 1.45; }
 
   /* Yatırım: sıralı çubuklar */
-  .yat-liste { display: grid; gap: 4px; }
+  .yat-liste { display: grid; }
   .yat {
-    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; align-items: baseline;
-    padding: 12px 0; border-bottom: 1px solid var(--cizgi);
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 12px; align-items: baseline;
+    padding: 8px 0 9px; border-bottom: 1px solid var(--cizgi);
   }
-  .yat .ad { font-weight: 600; font-size: 17px; }
-  .yat .ad small { display: block; font-weight: 400; font-size: 13px; color: var(--soluk); }
-  .yat .deger { font: 700 22px/1.1 var(--baslik); font-variation-settings: "wdth" 88; text-align: right; }
-  .yat .getiri { font-size: 14px; font-weight: 600; text-align: right; }
+  .yat:last-child { border-bottom: 0; }
+  .yat .ad { font-weight: 600; font-size: 15px; }
+  .yat .ad small { font-weight: 400; font-size: 12px; color: var(--soluk); margin-left: 6px; }
+  .yat .deger { font: 700 17px/1.1 var(--baslik); font-variation-settings: "wdth" 88; text-align: right; white-space: nowrap; }
+  .yat .getiri { font-size: 12px; font-weight: 600; margin-left: 6px; }
   .yat .getiri.arti { color: var(--vurgu); }
   .yat .getiri.eksi { color: var(--uyari); }
-  .yat .bar { grid-column: 1 / -1; height: 10px; border-radius: 3px; background: var(--alan-bos); position: relative; margin-top: 8px; }
+  .yat .bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--alan-bos); position: relative; margin-top: 6px; }
   .yat .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--vurgu); }
-  .yat .bar .esik { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--mavi); border-radius: 1px; }
+  .yat .bar .esik { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--mavi); border-radius: 1px; }
   .yat.yenildi .bar i { background: color-mix(in srgb, var(--vurgu) 45%, var(--alan-bos)); }
   .yat.taban .bar i { background: var(--soluk); opacity: .5; }
-  .yat .durum { font-size: 13px; color: var(--soluk); }
+  .yat .durum { font-size: 11px; font-weight: 600; color: var(--soluk); background: var(--yuzey2); padding: 1px 7px; border-radius: 99px; white-space: nowrap; vertical-align: 1px; }
+  .yat .durum.iyi { background: var(--vurgu-acik); }
   .yat .durum.iyi { color: var(--vurgu); }
-  .esik-acik { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--soluk); margin: 0 0 10px; }
-  .esik-acik i { width: 2px; height: 16px; background: var(--mavi); border-radius: 1px; }
+  .esik-acik { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--soluk); margin: -6px 0 6px; }
+  .esik-acik i { width: 2px; height: 12px; background: var(--mavi); border-radius: 1px; }
 
   /* Grafikler */
   .grafik { width: 100%; height: auto; display: block; overflow: visible; }
@@ -178,41 +180,41 @@
   .grafik .nokta { fill: var(--zemin); stroke: var(--vurgu); stroke-width: 2.5; }
   .grafik .nokta.mavi { stroke: var(--mavi); }
   .grafik text.uc { paint-order: stroke; stroke: var(--zemin); stroke-width: 4px; stroke-linejoin: round; font-weight: 700; }
-  .lejant { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--soluk); margin: 12px 0 0; }
+  .lejant { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--soluk); margin: 8px 0 0; }
   .lejant i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; background: var(--vurgu); }
   .lejant i.mavi { background: var(--mavi); }
 
-  .kiyas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 16px; }
-  .kiyas b { display: block; font: 700 clamp(30px, 5vw, 40px)/1 var(--baslik); font-variation-settings: "wdth" 85; letter-spacing: -.02em; }
+  .kiyas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 10px; }
+  .kiyas b { display: block; font: 700 clamp(24px, 3.6vw, 30px)/1 var(--baslik); font-variation-settings: "wdth" 85; letter-spacing: -.02em; }
   .kiyas .yesil b { color: var(--vurgu); }
   .kiyas .mavi b { color: var(--mavi); }
-  .kiyas span { font-size: 14px; color: var(--soluk); }
-  .sonuc { margin: 0 0 22px; padding-left: 14px; border-left: 3px solid var(--vurgu); }
+  .kiyas span { font-size: 12px; color: var(--soluk); }
+  .sonuc { margin: 0 0 12px; padding-left: 12px; border-left: 3px solid var(--vurgu); font-size: 14px; }
 
   /* Zam dönemleri tablosu */
-  .tablo { width: 100%; border-collapse: collapse; font-size: 15px; }
-  .tablo th { text-align: left; font-weight: 500; color: var(--soluk); font-size: 13px; padding: 0 12px 10px 0; border-bottom: 1.5px solid var(--yazi); }
-  .tablo td { padding: 11px 12px 11px 0; border-bottom: 1px solid var(--cizgi); vertical-align: middle; }
-  .tablo th.sag, .tablo td.sag { text-align: right; padding-right: 0; padding-left: 12px; }
+  .tablo { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .tablo th { text-align: left; font-weight: 500; color: var(--soluk); font-size: 12px; padding: 0 10px 6px 0; border-bottom: 1.5px solid var(--yazi); }
+  .tablo td { white-space: nowrap; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--cizgi); vertical-align: middle; }
+  .tablo th.sag, .tablo td.sag { text-align: right; padding-right: 0; padding-left: 10px; }
   .tablo td.tutar { font-weight: 700; }
-  .tablo .mini { display: block; height: 4px; border-radius: 2px; background: var(--vurgu); margin-top: 6px; opacity: .55; }
-  @media (max-width: 640px) {
+  .tablo .mini { display: block; height: 3px; border-radius: 2px; background: var(--vurgu); margin-top: 4px; opacity: .55; }
+  @media (max-width: 640px), (min-width: 900px) and (max-width: 1060px) {
     .tablo .gizle { display: none; }
     .tablo { font-size: 14px; }
   }
   .daha {
-    margin-top: 16px; padding: 10px 16px; border-radius: 10px; border: 1.5px solid var(--cizgi); background: transparent;
+    margin-top: 10px; padding: 7px 12px; border-radius: 9px; border: 1.5px solid var(--cizgi); background: transparent;
     color: var(--yazi); font: 600 14px var(--metin); cursor: pointer;
   }
   .daha:hover { border-color: var(--soluk); }
 
-  footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--cizgi); color: var(--soluk); font-size: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+  footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--cizgi); color: var(--soluk); font-size: 12px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px; }
   footer a { color: inherit; }
 
   @media (min-width: 760px) {
-    .kap { padding: 28px 40px 96px; }
+    .kap { padding: 22px 32px 56px; }
     .ust-izgara { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 40px; }
-    .cumle { margin: 0 0 6px; max-width: 30ch; }
+    .cumle { margin: 0 0 4px; max-width: 32ch; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -269,16 +271,16 @@
     </div>
   </div>
 
-  <section id="yatirimBlok">
-    <h2>Sigara yerine yatırım yapsaydım</h2>
-    <p class="aciklama">Her gün sigaraya gidecek parayla o günün fiyatından alım yapsaydın, birikenin bugünkü değeri.</p>
-    <p class="esik-acik"><i></i>Mavi çizgi: Yİ-ÜFE kadar artsaydı ulaşacağı değer</p>
-    <div class="yat-liste" id="yatirim"><div class="not">Yatırım verisi yükleniyor.</div></div>
-    <p class="not" id="yatirimNot"></p>
-  </section>
+  <div class="ikili">
+    <section class="panel" id="yatirimBlok">
+      <h2>Sigara yerine yatırım yapsaydım</h2>
+      <p class="aciklama">Her gün sigara parasıyla o günün fiyatından alım yapsaydın, bugün ne ederdi.</p>
+      <p class="esik-acik"><i></i>Mavi çizgi: Yİ-ÜFE kadar artsaydı</p>
+      <div class="yat-liste" id="yatirim"><div class="not">Yatırım verisi yükleniyor.</div></div>
+      <p class="not" id="yatirimNot"></p>
+    </section>
 
-  <div class="ikili ikili-kap">
-    <section>
+    <section class="panel">
       <h2>Sigara mı, Yİ-ÜFE mi?</h2>
       <p class="aciklama" id="kiyasAciklama">Bırakma tarihinden bugüne, ikisi de 100'den başlatıldı.</p>
       <div class="kiyas sayi">
@@ -286,27 +288,29 @@
         <div class="mavi"><b id="yiufeArtis">–</b><span id="yiufeEtiket">Yİ-ÜFE</span></div>
       </div>
       <p class="sonuc" id="kiyasSonuc">–</p>
-      <svg class="grafik" id="kiyasGrafik" viewBox="0 0 600 240" role="img" aria-label="Sigara fiyatı ile Yİ-ÜFE endeksinin karşılaştırması"></svg>
+      <svg class="grafik" id="kiyasGrafik" viewBox="0 0 600 200" role="img" aria-label="Sigara fiyatı ile Yİ-ÜFE endeksinin karşılaştırması"></svg>
       <div class="lejant"><span><i></i>Sigara paketi</span><span><i class="mavi"></i>Yİ-ÜFE</span></div>
       <p class="not" id="yiufeNot"></p>
     </section>
-
-    <section>
-      <h2>Paket fiyatı</h2>
-      <p class="aciklama" id="grafikAciklama">Her zam, fiyatın değiştiği gün itibarıyla hesaba girer.</p>
-      <svg class="grafik" id="grafik" viewBox="0 0 600 260" role="img" aria-label="Paket fiyatının zamanla değişimi"></svg>
-    </section>
   </div>
 
-  <section>
-    <h2>Zam dönemleri</h2>
-    <p class="aciklama">Her fiyat döneminde biriken tutar. Dolar karşılığı her günün kendi kuruyla hesaplanıp toplanır.</p>
-    <table class="tablo sayi">
-      <thead><tr><th>Dönem</th><th class="sag">Paket</th><th class="sag gizle">Gün</th><th class="sag gizle">Dolar</th><th class="sag">Biriken</th></tr></thead>
-      <tbody id="donemler"></tbody>
-    </table>
-    <button class="daha" id="daha" hidden>Tümünü göster</button>
-  </section>
+  <div class="ikili">
+    <section class="panel">
+      <h2>Paket fiyatı</h2>
+      <p class="aciklama" id="grafikAciklama">Her zam, fiyatın değiştiği gün itibarıyla hesaba girer.</p>
+      <svg class="grafik" id="grafik" viewBox="0 0 600 200" role="img" aria-label="Paket fiyatının zamanla değişimi"></svg>
+    </section>
+
+    <section class="panel">
+      <h2>Zam dönemleri</h2>
+      <p class="aciklama">Her fiyat döneminde biriken tutar. Dolar karşılığı her günün kendi kuruyla.</p>
+      <table class="tablo sayi">
+        <thead><tr><th>Dönem</th><th class="sag">Paket</th><th class="sag gizle">Gün</th><th class="sag gizle">Dolar</th><th class="sag">Biriken</th></tr></thead>
+        <tbody id="donemler"></tbody>
+      </table>
+      <button class="daha" id="daha" hidden>Tümünü göster</button>
+    </section>
+  </div>
 
   <footer>
     <span id="marka">Yükleniyor</span>
@@ -407,7 +411,7 @@ function hesapla(fiyatlar, birakmaStr, gundeAdet, paketAdet, kurAl, yiufeAl) {
 
 /* ---------- Grafik yardımcıları (bağımlılıksız SVG) ---------- */
 function tuval(svg) {
-  const W = Math.max(280, Math.round(svg.clientWidth || 600)), H = W < 500 ? 220 : 250;
+  const W = Math.max(260, Math.round(svg.clientWidth || 600)), H = W < 500 ? 180 : 200;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   return { W, H, P: { l: 38, r: 12, t: 18, b: 28 }, dar: W < 500 };
 }
@@ -556,7 +560,7 @@ function yatirimCiz() {
   if (!satirlar.length) { $('yatirim').innerHTML = '<p class="not">Yatırım verisi henüz yok.</p>'; return; }
 
   const enf = sonuc.reel, maliyet = sonuc.toplam;
-  satirlar.push({ id: 'tl', ad: 'TL olarak kenara koysaydım', deger: maliyet, detay: 'Yastık altında, hiç değerlenmeden', taban: true });
+  satirlar.push({ id: 'tl', ad: 'TL olarak tutsaydım', deger: maliyet, detay: '', taban: true });
   satirlar.sort((a, b) => b.deger - a.deger);
   const ust = Math.max(satirlar[0].deger, enf || 0) * 1.02;
   const esik = enf != null ? `<span class="esik" style="left:${(enf / ust * 100).toFixed(2)}%"></span>` : '';
@@ -564,13 +568,11 @@ function yatirimCiz() {
   $('yatirim').innerHTML = satirlar.map(s => {
     const getiri = (s.deger / maliyet - 1) * 100;
     const yendi = enf != null && s.deger >= enf;
-    const durum = s.taban || enf == null ? '' : yendi ? '<span class="durum iyi">enflasyonu geçti</span>' : '<span class="durum">enflasyonun gerisinde</span>';
+    const durum = s.taban ? '<span class="durum">yatırılan tutar</span>' : enf == null ? '' : yendi ? '<span class="durum iyi">enflasyonu geçti</span>' : '<span class="durum">enflasyonun gerisinde</span>';
     const alt = [s.detay, s.not].filter(Boolean).join(', ');
     return `<div class="yat${s.taban ? ' taban' : ''}${!s.taban && enf != null && !yendi ? ' yenildi' : ''}">
-      <div class="ad">${s.ad}<small class="sayi">${alt}</small></div>
-      <div class="deger sayi">${tl(s.deger)}</div>
-      <div>${durum}</div>
-      <div class="getiri sayi ${s.taban ? '' : getiri >= 0 ? 'arti' : 'eksi'}">${s.taban ? 'yatırılan tutar' : yuzde(getiri)}</div>
+      <div class="ad">${s.ad}<small class="sayi">${alt}</small> ${durum}</div>
+      <div class="deger sayi">${tl(s.deger)}<span class="getiri ${s.taban ? '' : getiri >= 0 ? 'arti' : 'eksi'}">${s.taban ? '' : yuzde(getiri)}</span></div>
       <div class="bar"><i style="width:${(s.deger / ust * 100).toFixed(2)}%"></i>${esik}</div>
     </div>`;
   }).join('');
@@ -592,8 +594,10 @@ function gunAlaniCiz(animasyon) {
   const n = gunler.length;
   const W = tuvalEl.clientWidth || tuvalEl.parentElement.clientWidth;
   // Kare boyu: az gün varsa iri, çok gün varsa ince
-  const hedef = n < 120 ? 18 : n < 400 ? 12 : W < 520 ? 6 : 9;
-  const bosluk = hedef >= 12 ? 3 : hedef >= 8 ? 2 : 1;
+  // Alan en fazla ~130px (mobilde ~170px) yüksek olsun; kare boyu buna göre
+  const hMax = W < 520 ? 170 : 130;
+  const hedef = Math.max(4, Math.min(16, Math.floor(Math.sqrt(W * hMax / Math.max(n, 1))) - 1));
+  const bosluk = hedef >= 12 ? 3 : hedef >= 7 ? 2 : 1;
   const kolon = Math.max(1, Math.floor((W + bosluk) / (hedef + bosluk)));
   const boy = (W + bosluk) / kolon - bosluk; // satırı tam doldur
   const satir = Math.ceil(n / kolon);
@@ -650,19 +654,20 @@ $('gunAlani').addEventListener('pointerleave', () => $('ipucu').classList.remove
 /* ---------- Ekran ---------- */
 let veri, kurlar, yiufe, yatirim, sonuc, tumu = false;
 
+const kisaTarih = d => d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: '2-digit', timeZone: 'UTC' });
 function donemleriCiz() {
   const liste = [...sonuc.donemler].reverse();
   const enCok = Math.max(...liste.map(d => d.kazanc));
-  const goster = tumu ? liste : liste.slice(0, 8);
+  const goster = tumu ? liste : liste.slice(0, 5);
   $('donemler').innerHTML = goster.map(d => `
     <tr>
-      <td>${trTarih(d.a)} – ${trTarih(d.b)}</td>
-      <td class="sag">${d.fiyat} ₺</td>
+      <td>${kisaTarih(d.a)} – ${kisaTarih(d.b)}</td>
+      <td class="sag" style="white-space:nowrap">${d.fiyat} ₺</td>
       <td class="sag gizle">${d.gun}</td>
       <td class="sag gizle">${d.usd != null ? usd(d.usd) : '–'}</td>
       <td class="sag tutar">${tl(d.kazanc)}<span class="mini" style="width:${(d.kazanc / enCok * 100).toFixed(1)}%;margin-left:auto"></span></td>
     </tr>`).join('');
-  $('daha').hidden = liste.length <= 8;
+  $('daha').hidden = liste.length <= 5;
   $('daha').textContent = tumu ? 'Daha az göster' : `${liste.length} dönemin tümünü göster`;
 }
 

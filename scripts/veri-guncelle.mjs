@@ -285,7 +285,7 @@ async function yatirimGuncelle() {
   if (ons) varliklar.push({ id: 'altin', ad: 'Gram altın', ikon: '🥇', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(ons, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 2) });
 
   const bist = (await bistTekil()) || (await isYatirimBist()) || (await yahoo('XU100.IS'));
-  if (bist) varliklar.push({ id: 'bist', ad: 'BIST 100', ikon: '📊', not: 'Endeks; temettü ve masraflar hariç', fiyatlar: yuvarla(bist, 2) });
+  if (bist) varliklar.push({ id: 'bist', ad: 'BIST 100', ikon: '📊', not: 'temettü hariç', fiyatlar: yuvarla(bist, 2) });
 
   // Gümüş: önce Borsa İstanbul'daki gümüş fonu (TL), olmazsa altın/gümüş oranından gram gümüş
   const gumusUsd = (await twelve('XAG/USD')) || (await yahoo('SI=F'));
@@ -298,7 +298,7 @@ async function yatirimGuncelle() {
   // ABD ETF: S&P 500 (SPY/VOO'nun izlediği endeks), USD → TL
   const spy = (await twelve('SPY')) || (await yahoo('SPY'));
   const spx = spy ? null : await sp500();
-  if (spy) varliklar.push({ id: 'sp500', ad: 'ABD S&P 500 ETF', ikon: '🇺🇸', not: 'SPY; temettü hariç', fiyatlar: yuvarla(kurluCevir(spy, kur), 2) });
+  if (spy) varliklar.push({ id: 'sp500', ad: 'ABD S&P 500 ETF', ikon: '🇺🇸', not: 'SPY, temettü hariç', fiyatlar: yuvarla(kurluCevir(spy, kur), 2) });
   else if (spx) varliklar.push({ id: 'sp500', ad: 'ABD S&P 500 ETF', ikon: '🇺🇸', not: 'S&P 500 endeksi; temettü hariç', fiyatlar: yuvarla(kurluCevir(spx, kur), 2) });
 
   const btc = (await binanceBtc()) || (await yahoo('BTC-USD')) || (await stooq('btcusd'));
