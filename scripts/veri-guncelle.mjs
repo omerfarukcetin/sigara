@@ -114,7 +114,7 @@ async function freeGold() {
       if (/^\d{4}-\d{2}-\d{2}$/.test(t) && t >= '2019-12-20' && +f > 0) sonuc[t] = +f;
     }
     console.log(`freegoldapi: ${Object.keys(sonuc).length} gün`);
-    return Object.keys(sonuc).length > 500 ? sonuc : null;
+    return Object.keys(sonuc).length > 300 ? sonuc : null;
   } catch (e) { console.log('freegoldapi atlandı:', e.message); return null; }
 }
 // Altın: LBMA öğleden sonra fiyatı (USD/ons)
@@ -126,20 +126,21 @@ async function lbmaAltin() {
     return Object.keys(sonuc).length > 500 ? sonuc : null;
   } catch (e) { console.log('LBMA altın atlandı:', e.message); return null; }
 }
-// Bitcoin: Binance herkese açık veri ucu (BTCUSDT günlük kapanış), 1000'erli sayfalar
-async function binanceBtc() {
+// Binance herkese açık veri ucu: günlük kapanışlar, 1000'erli sayfalar
+async function binance(sembol) {
   const sonuc = {};
   let bas = Date.UTC(2019, 11, 20);
   try {
     while (bas < Date.now()) {
-      const k = await getir(`https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1d&startTime=${bas}&limit=1000`, 'json');
+      const k = await getir(`https://data-api.binance.vision/api/v3/klines?symbol=${sembol}&interval=1d&startTime=${bas}&limit=1000`, 'json');
       if (!k.length) break;
       for (const m of k) sonuc[new Date(m[0]).toISOString().slice(0, 10)] = +m[4];
       bas = k.at(-1)[0] + 86400000;
     }
-    return Object.keys(sonuc).length > 500 ? sonuc : null;
-  } catch (e) { console.log('Binance BTC atlandı:', e.message); return null; }
+    return Object.keys(sonuc).length > 300 ? sonuc : null;
+  } catch (e) { console.log(`Binance ${sembol} atlandı:`, e.message); return null; }
 }
+const binanceBtc = () => binance('BTCUSDT');
 // BIST 100: İş Yatırım endeks geçmişi
 async function isYatirimBist() {
   const tarih = d => d.toISOString().slice(0, 10).replace(/-/g, '') + '000000';
@@ -156,7 +157,7 @@ async function isYatirimBist() {
   try {
     const g = d => `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
     const metin = await getir(`https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/Data.aspx/HisseTekil?hisse=XU100&startdate=20-12-2019&enddate=${g(new Date())}.json`, 'text', baslik);
-    console.log(`İş Yatırım HisseTekil: ${metin.length} bayt`);
+    console.log(`İş Yatırım HisseTekil: ${metin.length} bayt: ${metin.slice(0, 300)}`);
     const j = JSON.parse(metin), sonuc = {};
     for (const x of j.value || []) {
       const [gg, aa, yy] = String(x.HGDG_TARIH).split('-');
@@ -186,7 +187,9 @@ async function yatirimGuncelle() {
   const varliklar = [];
 
   // Gram altın = ons (USD) × USD/TRY ÷ 31,10
-  const ons = (await freeGold()) || (await lbmaAltin()) || (await yahoo('GC=F')) || (await stooq('xauusd'));
+  let ons = (await freeGold()) || (await lbmaAltin()) || (await yahoo('GC=F')) || (await stooq('xauusd'));
+  const paxg = await binance('PAXGUSDT'); // 1 PAXG = 1 ons altın; günlük veriyle seyrek seriyi tamamlar
+  if (paxg) { ons = { ...(ons || {}), ...paxg }; console.log(`PAXG: ${Object.keys(paxg).length} gün eklendi`); }
   if (ons) varliklar.push({ id: 'altin', ad: 'Gram altın', ikon: '🥇', fiyatlar: yuvarla(Object.fromEntries(Object.entries(kurluCevir(ons, kur)).map(([t, v]) => [t, v / ONS_GRAM])), 2) });
 
   const bist = (await isYatirimBist()) || (await yahoo('XU100.IS')) || (await stooq('^xu100'));
